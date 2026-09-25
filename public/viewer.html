@@ -425,6 +425,7 @@
                     <div class="menu-container">                         
                         <button id="menu-toggle" type="button" aria-label="Open chat actions" aria-controls="header-menu" aria-expanded="false"><i class="ph ph-dots-three-vertical"></i></button>
                         <div class="dropdown-menu" id="header-menu">                             
+                            <button type="button" class="menu-item" id="flip-view-action"><i class="ph ph-arrows-left-right"></i> Flip View</button>
                             <button type="button" class="menu-item" id="date-jump-action"><i class="ph ph-calendar-blank"></i> Go to Date</button>                             
                         </div>                     
                     </div>                 
@@ -483,6 +484,16 @@
                 <div class="date-sheet-actions">
                     <button class="btn-secondary" id="date-sheet-cancel" type="button">Cancel</button>
                     <button class="btn-primary" id="date-sheet-apply" type="button">Jump</button>
+                </div>
+            </div>
+        </div>
+        <div class="date-sheet-backdrop" id="perspective-sheet" hidden>
+            <div class="date-sheet" role="dialog" aria-modal="true" aria-labelledby="perspective-sheet-title" aria-describedby="perspective-sheet-description">
+                <h3 id="perspective-sheet-title">View Chat As</h3>
+                <p id="perspective-sheet-description">Choose whose messages appear on the right as sent.</p>
+                <div class="perspective-list" id="perspective-list" role="listbox" aria-label="Participants"></div>
+                <div class="date-sheet-actions">
+                    <button class="btn-secondary" id="perspective-sheet-cancel" type="button">Cancel</button>
                 </div>
             </div>
         </div>

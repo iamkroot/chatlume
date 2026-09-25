@@ -31,7 +31,7 @@ import { runSplashLoader } from "./shared/splash.js?v=1.7.3";
 import { createThemeController } from "./shared/theme.js?v=1.7.3";
 import { state } from "./whatsapp/state.js?v=1.7.3";
 import { cleanupMediaStore, closeMediaModal, handleMessageListClick } from "./whatsapp/media.js?v=1.7.3";
-import { handleViewportScroll, jumpToBottom, resetRenderToBottom } from "./whatsapp/render.js?v=1.7.3";
+import { handleViewportScroll, jumpToBottom, renderChatList, resetRenderToBottom } from "./whatsapp/render.js?v=1.7.3";
 import { handleSearch, handleSearchInput, handleSearchShortcut, navSearch, toggleSearch } from "./whatsapp/search.js?v=1.7.3";
 import {
     applySenderFilter,
@@ -48,6 +48,12 @@ import {
     closeDateSheet,
     handleDateJumpAction
 } from "./whatsapp/date-jump.js?v=1.7.3";
+import {
+    closePerspectiveSheet,
+    handleFlipViewAction,
+    setChatPerspective,
+    setupPerspective
+} from "./whatsapp/perspective.js?v=1.7.3";
 import { setupFileIntake } from "./whatsapp/file-picker.js?v=1.7.3";
 import { loadSavedSettings, syncSettingsControls } from "./whatsapp/settings-store.js?v=1.7.3";
 import { handleSettingChange, resetSettings } from "./whatsapp/settings-ui.js?v=1.7.3";
@@ -181,6 +187,7 @@ window.addEventListener("popstate", () => {
     if (state.activeMediaId) closeMediaModal();
     closeWrappedFromHistory();
     closeDateSheet();
+    closePerspectiveSheet();
     resolveConfirmSheet(false, { fromHistory: true });
     closeMenu();
     closeSenderFilterDropdown();
@@ -288,12 +295,34 @@ function bindUI() {
             items[event.key === "Home" ? 0 : items.length - 1].focus();
         }
     });
+    setupPerspective({ onRender: renderChatList, onToast: showToast, closeMenu });
+    $("flip-view-action")?.addEventListener("click", handleFlipViewAction);
     $("date-jump-action")?.addEventListener("click", handleDateJumpAction);
     $("scroll-latest")?.addEventListener("click", jumpToBottom);
 
     // Sheets
     $("date-sheet-cancel")?.addEventListener("click", cancelDateSheet);
     $("date-sheet-apply")?.addEventListener("click", applyDateSheetSelection);
+    $("perspective-sheet-cancel")?.addEventListener("click", () => {
+        closePerspectiveSheet();
+        popOverlayState();
+    });
+    $("perspective-sheet")?.addEventListener("click", (event) => {
+        if (event.target === $("perspective-sheet")) {
+            closePerspectiveSheet();
+            popOverlayState();
+        }
+    });
+    $("perspective-list")?.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-perspective-sender]");
+        if (!btn) return;
+        const sender = btn.getAttribute("data-perspective-sender");
+        closePerspectiveSheet();
+        popOverlayState();
+        if (sender && sender.toLowerCase() !== (state.myName || "").toLowerCase()) {
+            setChatPerspective(sender);
+        }
+    });
     $("confirm-sheet-cancel")?.addEventListener("click", () => resolveConfirmSheet(false));
     $("confirm-sheet-apply")?.addEventListener("click", () => resolveConfirmSheet(true));
 
@@ -386,6 +415,10 @@ function handleEscape() {
     }
     if (isVisible($("date-sheet"))) {
         closeDateSheet();
+        return;
+    }
+    if (isVisible($("perspective-sheet"))) {
+        closePerspectiveSheet();
         return;
     }
     if (isVisible($("confirm-sheet"))) {

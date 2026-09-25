@@ -349,7 +349,9 @@
                     <button id="ig-search-toggle" type="button" aria-label="Search messages" aria-controls="ig-search-toolbar" aria-expanded="false" title="Search messages (Ctrl+F or /)"><i class="ph ph-magnifying-glass"></i></button>
                     <div class="menu-container">
                         <button id="ig-menu-toggle" type="button" aria-label="Open chat actions" aria-controls="ig-header-menu" aria-expanded="false"><i class="ph ph-dots-three-vertical"></i></button>
-                        <div class="dropdown-menu" id="ig-header-menu"></div>
+                        <div class="dropdown-menu" id="ig-header-menu">
+                            <button type="button" class="menu-item" id="ig-flip-view-action"><i class="ph ph-arrows-left-right"></i> Flip View</button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -400,6 +402,18 @@
                 <button type="button" aria-label="Record voice note"><i class="ph ph-microphone"></i></button>
             </footer>
         </main>
+
+        <!-- Perspective sheet for group chats -->
+        <div class="date-sheet-backdrop" id="ig-perspective-sheet" hidden>
+            <div class="date-sheet" role="dialog" aria-modal="true" aria-labelledby="ig-perspective-sheet-title" aria-describedby="ig-perspective-sheet-description">
+                <h3 id="ig-perspective-sheet-title">View Chat As</h3>
+                <p id="ig-perspective-sheet-description">Choose whose messages appear on the right as sent.</p>
+                <div class="perspective-list" id="ig-perspective-list" role="listbox" aria-label="Participants"></div>
+                <div class="date-sheet-actions">
+                    <button class="btn-secondary" id="ig-perspective-sheet-cancel" type="button">Cancel</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Media modal -->
         <div class="media-modal" id="ig-media-modal" hidden>

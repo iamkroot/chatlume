@@ -114,4 +114,24 @@ describe(`release token v${VERSION}`, () => {
                 `${file} should open with a header comment describing the module`);
         }
     });
+
+    test("entry-point scripts import every callback passed to setup routines", () => {
+        for (const file of ["js/script.js", "js/instagram.js"]) {
+            const content = read(file);
+            const setupMatches = [...content.matchAll(/setup(?:Ig)?Perspective\(\s*\{([^}]+)\}\s*\)/g)];
+            for (const match of setupMatches) {
+                const pairs = match[1].split(",").map((p) => p.trim());
+                for (const pair of pairs) {
+                    const id = (pair.includes(":") ? pair.split(":")[1] : pair).trim();
+                    if (!id) continue;
+                    assert.ok(
+                        new RegExp(`\\bimport\\s*\\{[^}]*\\b${id}\\b[^}]*\\}`).test(content) ||
+                        new RegExp(`\\bfunction\\s+${id}\\b`).test(content) ||
+                        new RegExp(`\\bconst\\s+${id}\\b`).test(content),
+                        `${file}: callback '${id}' passed to setupPerspective must be imported or declared`
+                    );
+                }
+            }
+        }
+    });
 });

@@ -27,7 +27,13 @@ import { runSplashLoader } from "./shared/splash.js?v=1.7.3";
 import { createThemeController } from "./shared/theme.js?v=1.7.3";
 import { igState } from "./instagram/state.js?v=1.7.3";
 import { closeMediaModal, handleMessageListClick } from "./instagram/media.js?v=1.7.3";
-import { handleViewportScroll, jumpToBottom } from "./instagram/render.js?v=1.7.3";
+import {
+    closeIgPerspectiveSheet,
+    handleIgFlipViewAction,
+    setInstagramPerspective,
+    setupIgPerspective
+} from "./instagram/perspective.js?v=1.7.3";
+import { handleViewportScroll, jumpToBottom, renderChatList } from "./instagram/render.js?v=1.7.3";
 import { handleSearchInput, handleSearchShortcut, isSearchOpen, navSearch, toggleSearch } from "./instagram/search.js?v=1.7.3";
 import { initViewer } from "./instagram/session.js?v=1.7.3";
 import {
@@ -72,6 +78,7 @@ window.addEventListener("beforeunload", () => {
 /** Back button: close whatever overlay is open (its history entry is already gone). */
 window.addEventListener("popstate", () => {
     closeMediaModal();
+    closeIgPerspectiveSheet();
     closeMenu();
     closeAllDrawers();
 });
@@ -126,6 +133,28 @@ function bindUI() {
         }
     });
     $("ig-scroll-latest")?.addEventListener("click", jumpToBottom);
+    setupIgPerspective({ onRender: renderChatList, onToast: showToast, closeMenu });
+    $("ig-flip-view-action")?.addEventListener("click", handleIgFlipViewAction);
+    $("ig-perspective-sheet-cancel")?.addEventListener("click", () => {
+        closeIgPerspectiveSheet();
+        popOverlayState();
+    });
+    $("ig-perspective-sheet")?.addEventListener("click", (event) => {
+        if (event.target === $("ig-perspective-sheet")) {
+            closeIgPerspectiveSheet();
+            popOverlayState();
+        }
+    });
+    $("ig-perspective-list")?.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-perspective-sender]");
+        if (!btn) return;
+        const sender = btn.getAttribute("data-perspective-sender");
+        closeIgPerspectiveSheet();
+        popOverlayState();
+        if (sender && sender.toLowerCase() !== (igState.myName || "").toLowerCase()) {
+            setInstagramPerspective(sender);
+        }
+    });
     document.addEventListener("click", handleDocumentClick);
 
     // Media viewer
@@ -165,6 +194,10 @@ function handleGlobalKeydown(event) {
 /** Closes the topmost overlay. */
 function handleEscape() {
     if (igState.activeMediaId) { closeMediaModal(); return; }
+    if ($("ig-perspective-sheet") && !$("ig-perspective-sheet").hidden) {
+        closeIgPerspectiveSheet();
+        return;
+    }
     if (isSearchOpen()) { toggleSearch(); return; }
     const wasMenuOpen = $("ig-header-menu")?.classList.contains("show");
     closeMenu();
